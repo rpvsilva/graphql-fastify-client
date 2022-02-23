@@ -1,0 +1,5 @@
+{
+  "operationName": "Add"
+  "query": "query HelloWorld { hello } query Add { add(x: 123, y: 321) }"
+  "variables": {}
+}
