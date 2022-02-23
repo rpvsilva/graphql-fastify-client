@@ -15,7 +15,8 @@
     "fastify": "^3.27.2",
     "graphql": "^16.3.0",
     "graphql-jit": "^0.7.3",
-    "graphql-playground-html": "^1.6.30"
+    "graphql-playground-html": "^1.6.30",
+    "tiny-lru": "^8.0.1"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",

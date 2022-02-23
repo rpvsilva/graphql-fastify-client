@@ -1,11 +1,14 @@
+import fastify from "fastify";
 import { buildSchema, parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import fastify from "fastify";
-import { compileQuery, isCompiledQuery } from "graphql-jit";
+import { CompiledQuery, compileQuery, isCompiledQuery } from "graphql-jit";
 import { renderPlaygroundPage } from 'graphql-playground-html';
+import LRU from 'tiny-lru';
 import { GraphQLBody } from 'types/server';
 import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
+
+const queriesCache = LRU<CompiledQuery>(1024);
 
 const schema = makeExecutableSchema({
   typeDefs: buildSchema(Schema),
@@ -31,12 +34,17 @@ app.post('/', async (request, reply) => {
   const { body } = request;
   const { query, operationName, variables = {} } = body as GraphQLBody;
 
-  const queryParsed = parse(query);
-  const compiledQuery = compileQuery(schema, queryParsed, operationName);
-  
-  if (!isCompiledQuery(compiledQuery)) {
-    console.error(compiledQuery);
-    throw new Error("Error compiling query");
+  const cacheKey = `${query}${operationName}`;
+  let compiledQuery = queriesCache.get(`${query}${operationName}`);
+
+  if (!compiledQuery) {
+    const compilationResult = compileQuery(schema, parse(query), operationName);
+    if (isCompiledQuery(compilationResult)) {
+      compiledQuery = compilationResult;
+      queriesCache.set(cacheKey, compiledQuery);
+    } else {
+      return compilationResult;
+    }
   }
 
   const executionResult = await compiledQuery.query({}, {}, variables);
