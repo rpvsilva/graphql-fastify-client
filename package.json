@@ -9,7 +9,8 @@
     "build": "webpack build",
     "dev": "npm-run-all --parallel watch:build watch:server",
     "watch:build": "webpack --watch",
-    "watch:server": "nodemon \"./dist/index.js\" --watch \"./dist\""
+    "watch:server": "nodemon \"./dist/index.js\" --watch \"./dist\"",
+    "lint": "eslint --ext .ts src"
   },
   "author": "",
   "license": "ISC",
