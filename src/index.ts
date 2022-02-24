@@ -7,6 +7,7 @@ import LRU from 'tiny-lru';
 import { GraphQLBody } from 'types/server';
 import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
+import { PORT } from 'constants/config'
 
 const queriesCache = LRU<CompiledQuery>(1024);
 
@@ -51,6 +52,6 @@ app.post('/', async (request, reply) => {
   return reply.status(200).send(executionResult);
 });
 
-app.listen(8080, () => {
-  console.log("Server listening on port 0.0.0.0:8080");
+app.listen(PORT, () => {
+  console.log(`Server listening on port 0.0.0.0:${PORT}`);
 });

@@ -1,9 +1,10 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
+const DotEnv = require('dotenv-webpack');
 
 const {
   NODE_ENV = 'development',
+  PORT = 8080,
 } = process.env;
 
 module.exports = {
@@ -13,7 +14,7 @@ module.exports = {
   devtool: NODE_ENV === 'development' ? 'inline-source-map' : false,
   mode: NODE_ENV,
   plugins: [
-    NODE_ENV === 'development' && new webpack.HotModuleReplacementPlugin(),
+    new DotEnv()
   ],
   module: {
     rules: [
