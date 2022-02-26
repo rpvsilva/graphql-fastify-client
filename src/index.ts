@@ -4,13 +4,17 @@ import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
 import GraphQLFastify from 'server';
+import context from 'context';
+
+const schema = makeExecutableSchema({
+  typeDefs: buildSchema(Schema),
+  resolvers,
+});
 
 const { app } = new GraphQLFastify({
+  schema,
+  context,
   debug: !isProd,
-  schema: makeExecutableSchema({
-    typeDefs: buildSchema(Schema),
-    resolvers,
-  }),
   playground: {
     introspection: !isProd,
   },
