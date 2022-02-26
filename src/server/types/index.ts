@@ -1,8 +1,7 @@
-import context from 'context';
 import { FastifyRequest } from 'fastify';
 import { GraphQLSchema } from 'graphql';
 import { RenderPageOptions } from 'graphql-playground-html';
-import { ObjectOfAny } from './misc';
+import { ObjectOfAny } from '../../types/misc';
 
 export type GraphQLFastifyConfig = {
   schema: GraphQLSchema;
@@ -22,5 +21,3 @@ export type GraphQLBody = {
   operationName?: string;
   variables?: { [key: string]: ObjectOfAny };
 };
-
-export type ContextType = ReturnType<typeof context>;

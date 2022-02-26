@@ -5,7 +5,7 @@ import {
   HookHandlerDoneFunction,
   RouteShorthandOptions,
 } from 'fastify';
-import { GraphQLBody, GraphQLFastifyConfig } from 'types/server';
+import { GraphQLBody, GraphQLFastifyConfig } from 'server/types';
 
 const disableIntrospection = (
   request: FastifyRequest,

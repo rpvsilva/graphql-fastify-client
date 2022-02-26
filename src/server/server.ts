@@ -2,10 +2,10 @@ import fastify, { FastifyInstance } from 'fastify';
 import { renderPlaygroundPage } from 'graphql-playground-html';
 import LRU, { Lru } from 'tiny-lru';
 import { isProd } from 'constants/index';
-import { GraphQLBody, GraphQLFastifyConfig } from 'types/server';
+import { GraphQLBody, GraphQLFastifyConfig } from 'server/types';
 import { CompiledQuery, compileQuery, isCompiledQuery } from 'graphql-jit';
 import { parse } from 'graphql';
-import { postMiddleware } from 'middlewares';
+import { postMiddleware } from 'server/middlewares';
 
 class GraphQLFastify {
   public app: FastifyInstance;

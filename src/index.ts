@@ -3,7 +3,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
-import GraphQLFastify from 'server';
+import GraphQLFastify from 'server/server';
 import context from 'context';
 
 const schema = makeExecutableSchema({
