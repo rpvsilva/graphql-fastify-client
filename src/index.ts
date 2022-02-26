@@ -5,12 +5,15 @@ import Schema from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
 import GraphQLFastify from 'server';
 
-const app = new GraphQLFastify({
+const { app } = new GraphQLFastify({
+  debug: !isProd,
   schema: makeExecutableSchema({
     typeDefs: buildSchema(Schema),
     resolvers,
   }),
-  debug: !isProd,
+  playground: {
+    introspection: !isProd,
+  },
 });
 
 app.listen(+PORT, () => {
