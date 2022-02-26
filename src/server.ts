@@ -5,38 +5,32 @@ import { isProd } from 'constants/index';
 import { GraphQLBody, GraphQLFastifyConfig } from 'types/server';
 import { CompiledQuery, compileQuery, isCompiledQuery } from 'graphql-jit';
 import { parse } from 'graphql';
+import { postMiddleware } from 'middlewares';
 
 class GraphQLFastify {
   public app: FastifyInstance;
   private queriesCache: Lru<CompiledQuery>;
+  private config: GraphQLFastifyConfig;
 
   constructor(config: GraphQLFastifyConfig) {
+    this.config = config;
     this.queriesCache = LRU(1024);
     this.app = fastify({
       logger: config.debug,
     });
 
-    this.config(config);
+    this.enableGraphQLRequests();
+
+    this.configPlayground();
   }
 
-  private config = (config: GraphQLFastifyConfig) => {
-    const { playground, schema } = config || {};
+  private enableGraphQLRequests = () => {
+    const { schema } = this.config;
 
-    this.enableGraphQLRequests(schema, playground?.introspection);
+    this.app.post('/', postMiddleware(this.config), async (request, reply) => {
+      const context = this.config.context?.(request);
 
-    this.configPlayground(playground);
-  };
-
-  private enableGraphQLRequests = (
-    schema: GraphQLFastifyConfig['schema'],
-    introspection = !isProd
-  ) => {
-    this.app.post('/', async ({ body }, reply) => {
-      const { query, operationName, variables = {} } = body as GraphQLBody;
-
-      if (!introspection && operationName === 'IntrospectionQuery') {
-        return reply.code(400).send(Error('IntrospectionQuery is disabled on GraphQLFastify.'));
-      }
+      const { query, operationName, variables = {} } = request.body as GraphQLBody;
 
       const cacheKey = `${query}${operationName}`;
       let compiledQuery = this.queriesCache.get(`${query}${operationName}`);
@@ -52,7 +46,7 @@ class GraphQLFastify {
         }
       }
 
-      const executionResult = await compiledQuery.query({}, {}, variables);
+      const executionResult = await compiledQuery.query({}, context, variables);
 
       return reply.status(200).send(executionResult);
     });

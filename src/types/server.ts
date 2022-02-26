@@ -1,11 +1,14 @@
+import context from 'context';
+import { FastifyRequest } from 'fastify';
 import { GraphQLSchema } from 'graphql';
 import { RenderPageOptions } from 'graphql-playground-html';
 import { ObjectOfAny } from './misc';
 
-export type GraphQLBody = {
-  query: string;
-  operationName?: string;
-  variables?: { [key: string]: ObjectOfAny };
+export type GraphQLFastifyConfig = {
+  schema: GraphQLSchema;
+  debug?: boolean;
+  playground?: PlaygroundOptions;
+  context?: (request: FastifyRequest) => ObjectOfAny;
 };
 
 type PlaygroundOptions = RenderPageOptions & {
@@ -14,8 +17,10 @@ type PlaygroundOptions = RenderPageOptions & {
   introspection?: boolean;
 };
 
-export type GraphQLFastifyConfig = {
-  schema: GraphQLSchema;
-  debug?: boolean;
-  playground?: PlaygroundOptions;
+export type GraphQLBody = {
+  query: string;
+  operationName?: string;
+  variables?: { [key: string]: ObjectOfAny };
 };
+
+export type ContextType = ReturnType<typeof context>;
