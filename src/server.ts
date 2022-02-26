@@ -7,7 +7,7 @@ import { CompiledQuery, compileQuery, isCompiledQuery } from 'graphql-jit';
 import { parse } from 'graphql';
 
 class GraphQLFastify {
-  private app: FastifyInstance;
+  public app: FastifyInstance;
   private queriesCache: Lru<CompiledQuery>;
 
   constructor(config: GraphQLFastifyConfig) {
@@ -22,22 +22,21 @@ class GraphQLFastify {
   private config = (config: GraphQLFastifyConfig) => {
     const { playground, schema } = config || {};
 
-    this.enableGraphQLRequests(schema);
+    this.enableGraphQLRequests(schema, playground?.introspection);
 
     this.configPlayground(playground);
   };
 
-  public listen = (
-    port: number | string,
-    callback: (err: Error | null, address: string) => void
-  ): void => {
-    return this.app.listen(port, callback);
-  };
-
-  private enableGraphQLRequests = (schema: GraphQLFastifyConfig['schema']) => {
-    this.app.post('/', async (request, reply) => {
-      const { body } = request;
+  private enableGraphQLRequests = (
+    schema: GraphQLFastifyConfig['schema'],
+    introspection = !isProd
+  ) => {
+    this.app.post('/', async ({ body }, reply) => {
       const { query, operationName, variables = {} } = body as GraphQLBody;
+
+      if (!introspection && operationName === 'IntrospectionQuery') {
+        return reply.code(400).send(Error('IntrospectionQuery is disabled on GraphQLFastify.'));
+      }
 
       const cacheKey = `${query}${operationName}`;
       let compiledQuery = this.queriesCache.get(`${query}${operationName}`);
@@ -71,7 +70,8 @@ class GraphQLFastify {
         })
         .send(
           renderPlaygroundPage({
-            endpoint: '/',
+            ...playgroundConfig,
+            endpoint,
           })
         );
     });
