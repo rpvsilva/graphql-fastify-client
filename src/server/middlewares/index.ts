@@ -6,6 +6,7 @@ import {
   RouteShorthandOptions,
 } from 'fastify';
 import { GraphQLBody, GraphQLFastifyConfig } from 'server/types';
+import { isIntrospectionQuery } from 'server/utils';
 
 const disableIntrospection = (
   request: FastifyRequest,
@@ -16,7 +17,7 @@ const disableIntrospection = (
   const { operationName } = request.body as GraphQLBody;
   const { introspection = !isProd } = playground;
 
-  if (!introspection && operationName === 'IntrospectionQuery') {
+  if (!introspection && isIntrospectionQuery(operationName)) {
     return reply.code(400).send(Error('IntrospectionQuery is disabled on GraphQLFastify.'));
   }
 
