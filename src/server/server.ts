@@ -1,4 +1,3 @@
-import fastify, { FastifyInstance } from 'fastify';
 import { renderPlaygroundPage } from 'graphql-playground-html';
 import LRU, { Lru } from 'tiny-lru';
 import { isProd } from 'constants/index';
@@ -9,9 +8,10 @@ import { postMiddleware } from 'server/middlewares';
 import { GraphqlFastifyCache } from './types/cache';
 import cache from './cache';
 import { generateCacheKey, getCacheTtl, isIntrospectionQuery } from './utils';
+import { FastifyInstance } from 'fastify';
 
 class GraphQLFastify {
-  public app: FastifyInstance;
+  private app: FastifyInstance | undefined;
   private queriesCache: Lru<CompiledQuery>;
   private config: GraphQLFastifyConfig;
   private cache: GraphqlFastifyCache | undefined;
@@ -19,13 +19,14 @@ class GraphQLFastify {
   constructor(config: GraphQLFastifyConfig) {
     this.config = config;
     this.queriesCache = LRU(1024);
-    this.app = fastify({
-      logger: config.debug,
-    });
 
     if (config.cache) {
       this.cache = cache(config.cache);
     }
+  }
+
+  public applyMiddleware(app: FastifyInstance): void {
+    this.app = app;
 
     this.enableGraphQLRequests();
 
@@ -35,7 +36,7 @@ class GraphQLFastify {
   private enableGraphQLRequests = () => {
     const { schema } = this.config;
 
-    this.app.post('/', postMiddleware(this.config), async (request, reply) => {
+    this.app?.post('/', postMiddleware(this.config), async (request, reply) => {
       const { query, operationName, variables = {} } = request.body as GraphQLBody;
       const cacheKey = generateCacheKey(query, variables);
       const isIntroQuery = isIntrospectionQuery(operationName);
@@ -43,7 +44,7 @@ class GraphQLFastify {
       if (!isIntroQuery) {
         const cachedValue = await this.cache?.get(cacheKey);
 
-        if (!cachedValue) return reply.code(200).send(cachedValue);
+        if (cachedValue) return reply.code(200).send(cachedValue);
       }
 
       const queryCacheKey = `${query}${operationName}`;
@@ -80,7 +81,7 @@ class GraphQLFastify {
 
     if (!enabled) return;
 
-    this.app.get(endpoint, async (_, reply) => {
+    this.app?.get(endpoint, async (_, reply) => {
       return reply
         .headers({
           'Content-Type': 'text/html',

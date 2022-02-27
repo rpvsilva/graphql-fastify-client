@@ -6,12 +6,11 @@ export type GraphqlFastifyCache = ReturnType<typeof cache>;
 
 export type Cache<C = Record<string, never>> = {
   defaultTTL: number;
-  all?: boolean;
   storage: 'memory' | Redis;
   policy?: CachePolicy<C>;
 };
 
-type CachePolicy<C extends Record<string, any>> = {
+export type CachePolicy<C = Record<string, any>> = {
   [key in keyof C]?: {
     ttl: number;
   };

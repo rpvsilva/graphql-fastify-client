@@ -1,5 +1,5 @@
 import { DefinitionNode, DocumentNode, OperationDefinitionNode, SelectionNode } from 'graphql';
-import { Cache } from 'server/types/cache';
+import { CachePolicy } from 'server/types/cache';
 import { ObjectOfAny } from 'types/misc';
 import { hashString } from './string';
 
@@ -14,9 +14,10 @@ export const isIntrospectionQuery = (operationName?: string): boolean => {
  */
 export const getCacheTtl = (
   query: DocumentNode,
-  cachePolicy: Cache['policy'] = {},
+  cachePolicy?: CachePolicy,
   operationName?: string
 ): number => {
+  if (!cachePolicy) return 0;
   const {
     selectionSet: { selections },
   } = getOperation(query.definitions, operationName);
@@ -28,10 +29,7 @@ export const getCacheTtl = (
   return Math.min(...cacheTtls);
 };
 
-const getCacheableTtls = (
-  selections: readonly SelectionNode[],
-  cachePolicy: Cache['policy'] = {}
-) => {
+const getCacheableTtls = (selections: readonly SelectionNode[], cachePolicy: CachePolicy) => {
   return selections.reduce<number[]>((acc, selection) => {
     if (selection.kind !== 'Field' || defaultQueryFields.includes(selection.name.value)) {
       return acc;
