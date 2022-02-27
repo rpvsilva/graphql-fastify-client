@@ -7,6 +7,7 @@ import { PORT, isProd } from 'constants/index';
 import GraphQLFastify from 'server/server';
 import context from 'context';
 import { Cache } from 'server/types/cache';
+import { ContextType } from 'types';
 
 const schema = makeExecutableSchema({
   typeDefs: buildSchema(Schema),
@@ -20,6 +21,11 @@ const cache: Cache<typeof resolvers['Query']> = {
     add: {
       ttl: 1000,
     },
+  },
+  extraCacheKeyData: (ctx) => {
+    const { locale } = ctx as ContextType;
+
+    return locale;
   },
 };
 

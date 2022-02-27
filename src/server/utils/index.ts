@@ -54,8 +54,12 @@ const getOperation = (
   ) as OperationDefinitionNode;
 };
 
-export const generateCacheKey = (query: string, variables: ObjectOfAny = {}): string => {
-  const string = `${query}-${JSON.stringify(variables)}`;
+export const generateCacheKey = (
+  query: string,
+  variables: ObjectOfAny = {},
+  extraCacheKeyData?: string
+): string => {
+  const string = `${query}${JSON.stringify(variables)}${extraCacheKeyData || ''}`;
 
   return `gfc:${hashString(string)}`;
 };

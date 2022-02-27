@@ -38,7 +38,12 @@ class GraphQLFastify {
 
     this.app?.post('/', postMiddleware(this.config), async (request, reply) => {
       const { query, operationName, variables = {} } = request.body as GraphQLBody;
-      const cacheKey = generateCacheKey(query, variables);
+      const context = this.config.context?.(request) || {};
+      const cacheKey = generateCacheKey(
+        query,
+        variables,
+        this.config.cache?.extraCacheKeyData?.(context)
+      );
       const isIntroQuery = isIntrospectionQuery(operationName);
 
       if (!isIntroQuery) {
@@ -62,11 +67,10 @@ class GraphQLFastify {
         }
       }
 
-      const context = this.config.context?.(request);
       const executionResult = await compiledQuery.query({}, context, variables);
       const hasErrors = executionResult.errors?.length;
 
-      if (!isIntroQuery && !hasErrors) {
+      if (!isIntroQuery && !hasErrors && executionResult.data) {
         const cacheTtl = getCacheTtl(parsedQuery, this.config.cache?.policy, operationName);
 
         if (cacheTtl) this.cache?.set(cacheKey, JSON.stringify(executionResult), cacheTtl);
