@@ -2,15 +2,19 @@ import fastify, { FastifyInstance } from 'fastify';
 import { renderPlaygroundPage } from 'graphql-playground-html';
 import LRU, { Lru } from 'tiny-lru';
 import { isProd } from 'constants/index';
-import { GraphQLBody, GraphQLFastifyConfig } from 'types/server';
+import { GraphQLBody, GraphQLFastifyConfig } from 'server/types';
 import { CompiledQuery, compileQuery, isCompiledQuery } from 'graphql-jit';
 import { parse } from 'graphql';
-import { postMiddleware } from 'middlewares';
+import { postMiddleware } from 'server/middlewares';
+import { GraphqlFastifyCache } from './types/cache';
+import cache from './cache';
+import { generateCacheKey, getCacheTtl, isIntrospectionQuery } from './utils';
 
 class GraphQLFastify {
   public app: FastifyInstance;
   private queriesCache: Lru<CompiledQuery>;
   private config: GraphQLFastifyConfig;
+  private cache: GraphqlFastifyCache | undefined;
 
   constructor(config: GraphQLFastifyConfig) {
     this.config = config;
@@ -18,6 +22,10 @@ class GraphQLFastify {
     this.app = fastify({
       logger: config.debug,
     });
+
+    if (config.cache) {
+      this.cache = cache(config.cache);
+    }
 
     this.enableGraphQLRequests();
 
@@ -28,25 +36,40 @@ class GraphQLFastify {
     const { schema } = this.config;
 
     this.app.post('/', postMiddleware(this.config), async (request, reply) => {
-      const context = this.config.context?.(request);
-
       const { query, operationName, variables = {} } = request.body as GraphQLBody;
+      const cacheKey = generateCacheKey(query, variables);
+      const isIntroQuery = isIntrospectionQuery(operationName);
 
-      const cacheKey = `${query}${operationName}`;
-      let compiledQuery = this.queriesCache.get(`${query}${operationName}`);
+      if (!isIntroQuery) {
+        const cachedValue = await this.cache?.get(cacheKey);
+
+        if (!cachedValue) return reply.code(200).send(cachedValue);
+      }
+
+      const queryCacheKey = `${query}${operationName}`;
+      const parsedQuery = parse(query);
+      let compiledQuery = this.queriesCache.get(queryCacheKey);
 
       if (!compiledQuery) {
-        const compilationResult = compileQuery(schema, parse(query), operationName);
+        const compilationResult = compileQuery(schema, parsedQuery, operationName);
 
         if (isCompiledQuery(compilationResult)) {
           compiledQuery = compilationResult;
-          this.queriesCache.set(cacheKey, compiledQuery);
+          this.queriesCache.set(queryCacheKey, compiledQuery);
         } else {
           return compilationResult;
         }
       }
 
+      const context = this.config.context?.(request);
       const executionResult = await compiledQuery.query({}, context, variables);
+      const hasErrors = executionResult.errors?.length;
+
+      if (!isIntroQuery && !hasErrors) {
+        const cacheTtl = getCacheTtl(parsedQuery, this.config.cache?.policy, operationName);
+
+        if (cacheTtl) this.cache?.set(cacheKey, JSON.stringify(executionResult), cacheTtl);
+      }
 
       return reply.status(200).send(executionResult);
     });
