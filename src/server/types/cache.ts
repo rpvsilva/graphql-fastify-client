@@ -15,5 +15,13 @@ export type Cache<C = Record<string, never>> = {
 export type CachePolicy<C = Record<string, any>> = {
   [key in keyof C]?: {
     ttl: number;
+    scope?: 'PUBLIC' | 'PRIVATE';
   };
+};
+
+export type GetCacheKey = {
+  query: string;
+  variables: ObjectOfAny;
+  authorization?: string;
+  extraCacheKeyData?: string;
 };

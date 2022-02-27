@@ -3,6 +3,11 @@ import { CachePolicy } from 'server/types/cache';
 import { ObjectOfAny } from 'types/misc';
 import { hashString } from './string';
 
+type CacheInformation = {
+  ttl: number;
+  isPrivate: boolean;
+};
+
 const defaultQueryFields = ['__typename', '__schema', '__type'];
 
 export const isIntrospectionQuery = (operationName?: string): boolean => {
@@ -16,31 +21,41 @@ export const getCacheTtl = (
   query: DocumentNode,
   cachePolicy?: CachePolicy,
   operationName?: string
-): number => {
-  if (!cachePolicy) return 0;
+): CacheInformation | null => {
+  if (!cachePolicy) return null;
   const {
     selectionSet: { selections },
   } = getOperation(query.definitions, operationName);
 
-  const cacheTtls = getCacheableTtls(selections, cachePolicy);
+  const { cacheTtls, isPrivate } = getCacheableTtls(selections, cachePolicy);
 
-  if (selections.length !== cacheTtls.length) return 0;
+  if (selections.length !== cacheTtls.length) return null;
 
-  return Math.min(...cacheTtls);
+  return {
+    ttl: Math.max(...cacheTtls),
+    isPrivate,
+  };
 };
 
 const getCacheableTtls = (selections: readonly SelectionNode[], cachePolicy: CachePolicy) => {
-  return selections.reduce<number[]>((acc, selection) => {
-    if (selection.kind !== 'Field' || defaultQueryFields.includes(selection.name.value)) {
+  return selections.reduce(
+    (acc, selection) => {
+      if (selection.kind !== 'Field' || defaultQueryFields.includes(selection.name.value)) {
+        return acc;
+      }
+      const name = selection.name.value;
+      const cacheRule = cachePolicy[name];
+
+      if (!cacheRule) return acc;
+
+      acc.cacheTtls = [...acc.cacheTtls, cacheRule.ttl];
+
+      if (!acc.isPrivate) acc.isPrivate = cacheRule.scope === 'PRIVATE';
+
       return acc;
-    }
-    const name = selection.name.value;
-    const cacheRule = cachePolicy[name];
-
-    if (!cacheRule) return acc;
-
-    return [...acc, cacheRule.ttl];
-  }, []);
+    },
+    { cacheTtls: [], isPrivate: false } as { cacheTtls: number[]; isPrivate: boolean }
+  );
 };
 
 const getOperation = (
@@ -57,9 +72,12 @@ const getOperation = (
 export const generateCacheKey = (
   query: string,
   variables: ObjectOfAny = {},
+  authorizationToken?: string,
   extraCacheKeyData?: string
 ): string => {
-  const string = `${query}${JSON.stringify(variables)}${extraCacheKeyData || ''}`;
+  const string = `${query}${JSON.stringify(variables)}${authorizationToken || ''}${
+    extraCacheKeyData || ''
+  }`;
 
   return `gfc:${hashString(string)}`;
 };
