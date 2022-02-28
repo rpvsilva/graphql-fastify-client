@@ -25,10 +25,12 @@ class GraphQLFastify {
     }
   }
 
-  public applyMiddleware = (app: FastifyInstance): void => {
+  public applyMiddleware = (config: { app: FastifyInstance; path: '/' }): void => {
+    const { app, path } = config;
+
     this.app = app;
 
-    this.enableGraphQLRequests();
+    this.enableGraphQLRequests(path);
 
     this.configPlayground();
   };
@@ -44,10 +46,10 @@ class GraphQLFastify {
     return generateCacheKey(query, variables, authorization, extraCacheKeyData);
   };
 
-  private enableGraphQLRequests = () => {
+  private enableGraphQLRequests = (path = '/') => {
     const { schema } = this.config;
 
-    this.app?.post('/', postMiddleware(this.config), async (request, reply) => {
+    this.app?.post(path, postMiddleware(this.config), async (request, reply) => {
       const { query, operationName, variables = {} } = request.body as GraphQLBody;
       const isIntroQuery = isIntrospectionQuery(operationName);
       const context = this.config.context?.(request) || {};
@@ -63,7 +65,7 @@ class GraphQLFastify {
         extraCacheKeyData: this.config.cache?.extraCacheKeyData?.(context),
       });
 
-      if (!isIntroQuery && this.cache) {
+      if (this.cache && !isIntroQuery) {
         const cachedValue = await this.cache.get(cacheKey);
 
         if (cachedValue) return reply.code(200).send(cachedValue);

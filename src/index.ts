@@ -41,7 +41,7 @@ const server = new GraphQLFastify({
   },
 });
 
-server.applyMiddleware(app);
+server.applyMiddleware({ app, path: '/' });
 
 app.listen(+PORT, () => {
   // eslint-disable-next-line no-console
