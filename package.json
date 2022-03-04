@@ -1,5 +1,5 @@
 {
-  "name": "graphql-fastify",
+  "name": "graphql-fastify-client",
   "type": "commonjs",
   "version": "1.0.0",
   "description": "",
@@ -19,11 +19,8 @@
     "@graphql-tools/schema": "^8.3.1",
     "fastify": "^3.27.2",
     "graphql": "^16.3.0",
-    "graphql-jit": "^0.7.3",
-    "graphql-playground-html": "^1.6.30",
-    "ioredis": "^4.28.5",
-    "node-cache": "^5.1.2",
-    "tiny-lru": "^8.0.1"
+    "graphql-fastify-server": "^1.0.3",
+    "ioredis": "^4.28.5"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.1",

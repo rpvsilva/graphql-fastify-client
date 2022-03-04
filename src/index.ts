@@ -4,10 +4,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
-import GraphQLFastify from 'server/server';
 import context from 'context';
-import { Cache } from 'server/types/cache';
 import { ContextType } from 'types';
+import GraphQLFastify, { Cache } from 'graphql-fastify-server';
 
 const schema = makeExecutableSchema({
   typeDefs: buildSchema(Schema),
