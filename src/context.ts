@@ -1,9 +1,10 @@
 import { FastifyRequest } from 'fastify';
 
 export default (request: FastifyRequest) => {
-  const { authorization } = request.headers;
+  const { headers } = request;
 
   return {
-    isAutheticated: !!authorization,
+    isAutheticated: !!headers.authorization,
+    locale: headers['accept-language'],
   };
 };

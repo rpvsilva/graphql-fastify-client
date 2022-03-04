@@ -3,8 +3,7 @@ const nodeExternals = require('webpack-node-externals');
 const DotEnv = require('dotenv-webpack');
 
 const {
-  NODE_ENV = 'development',
-  PORT = 8080,
+  NODE_ENV = 'development'
 } = process.env;
 
 module.exports = {

@@ -1,11 +1,12 @@
+import fastify from 'fastify';
 import { buildSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import resolvers from 'schema/resolvers';
 import Schema from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
-import GraphQLFastify from 'server/server';
 import context from 'context';
-import { Cache } from 'server/types/cache';
+import { ContextType } from 'types';
+import GraphQLFastify, { Cache } from 'graphql-fastify-server';
 
 const schema = makeExecutableSchema({
   typeDefs: buildSchema(Schema),
@@ -20,9 +21,16 @@ const cache: Cache<typeof resolvers['Query']> = {
       ttl: 1000,
     },
   },
+  extraCacheKeyData: (ctx) => {
+    const { locale } = ctx as ContextType;
+
+    return locale;
+  },
 };
 
-const { app } = new GraphQLFastify({
+const app = fastify();
+
+const server = new GraphQLFastify({
   schema,
   context,
   cache,
@@ -32,7 +40,9 @@ const { app } = new GraphQLFastify({
   },
 });
 
+server.applyMiddleware({ app, path: '/' });
+
 app.listen(+PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Server listening on port 0.0.0.0:${PORT}`);
+  console.log(`Server listening on port http://0.0.0.0:${PORT}`);
 });
