@@ -1,4 +1,8 @@
 type Query {
-    hello: String
-    add(x: Int!, y: Int!): Int!
-  }
+  hello: String
+  add(x: Int!, y: Int!): Int!
+}
+
+type Mutation {
+  sub(x: Int!, y: Int!): Int!
+}

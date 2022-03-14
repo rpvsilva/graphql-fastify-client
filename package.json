@@ -3,7 +3,7 @@
   "type": "commonjs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
     "build": "webpack build",
@@ -14,7 +14,7 @@
     "prepare": "husky install"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@graphql-tools/schema": "^8.3.2",
     "fastify": "^3.27.4",
@@ -25,8 +25,8 @@
     "@commitlint/cli": "^16.2.1",
     "@commitlint/config-conventional": "^16.2.1",
     "@types/ioredis": "^4.28.8",
-    "@typescript-eslint/eslint-plugin": "^5.14.0",
-    "@typescript-eslint/parser": "^5.14.0",
+    "@typescript-eslint/eslint-plugin": "^5.15.0",
+    "@typescript-eslint/parser": "^5.15.0",
     "dotenv-webpack": "^7.1.0",
     "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.5.0",

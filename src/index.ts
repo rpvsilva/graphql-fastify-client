@@ -4,10 +4,9 @@ import resolvers from 'schema/resolvers';
 import typeDefs from 'schema/index.gql';
 import { PORT, isProd } from 'constants/index';
 import context from 'context';
-import { ContextType } from 'types';
+import { ContextType, Resolvers } from 'types';
 import GraphQLFastify, { Cache } from 'graphql-fastify-server';
-
-type Resolvers = typeof resolvers['Query'];
+import middlewares from 'middlewares';
 
 const cache: Cache<ContextType, Resolvers> = {
   defaultTTL: 1000,
@@ -15,6 +14,10 @@ const cache: Cache<ContextType, Resolvers> = {
   policy: {
     add: {
       ttl: 1000,
+    },
+    sub: {
+      ttl: 15000,
+      scope: 'PRIVATE',
     },
   },
   extraCacheKeyData: (ctx) => {
@@ -34,6 +37,7 @@ const server = new GraphQLFastify({
   context,
   cache,
   debug: !isProd,
+  middlewares,
   playground: {
     introspection: !isProd,
   },
