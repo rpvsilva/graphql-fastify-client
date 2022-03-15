@@ -4,7 +4,7 @@
 ![vulnerabilities](https://snyk.io/test/github/rpvsilva/graphql-fastify/badge.svg?targetFile=package.json)
 
 
-## What is the best documentation than to show how to use a package?
+## What is the best documentation rather than showing how to use a package?
 
 Well this is a repository where I show how to use the package [GraphQL Fastify Server](https://github.com/rpvsilva/graphql-fastify-server). I wiil update this repo with every features added to the package to demonstrate them.
 
