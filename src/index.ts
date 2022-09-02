@@ -45,7 +45,7 @@ const server = new GraphQLFastify({
 
 server.applyMiddleware({ app, path: '/' });
 
-app.listen(+PORT, async () => {
+app.listen({ port: +PORT }, () => {
   // eslint-disable-next-line no-console
   console.log(`Server listening on port http://0.0.0.0:${PORT}`);
 });
