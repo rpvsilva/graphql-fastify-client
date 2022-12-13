@@ -6,3 +6,7 @@ type Query {
 type Mutation {
   sub(x: Int!, y: Int!): Int!
 }
+
+type Subscription {
+  add(x: Int!, y: Int!): Int!
+}

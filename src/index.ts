@@ -36,8 +36,8 @@ const server = new GraphQLFastify({
   }),
   context,
   cache,
-  debug: !isProd,
   middlewares,
+  subscriptions: true,
   playground: {
     introspection: !isProd,
   },
